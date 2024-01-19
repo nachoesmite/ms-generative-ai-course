@@ -24,9 +24,9 @@ GOOGLE_API_SERVICE_NAME = "youtube"
 GOOGLE_API_VERSION = "v3"
 
 MAX_RESULTS = 50
-PROCESSING_THREADS = 40
+PROCESSING_THREADS = 50
 
-formatter = WebVTTFormatter()
+# formater = WebVTTFormatter()
 q = queue.Queue()
 
 parser = argparse.ArgumentParser()
@@ -47,6 +47,9 @@ if not TRANSCRIPT_FOLDER:
 if not PLAYLIST_ID:
     logger.error("Playlist ID not provided")
     exit(1)
+
+if not os.path.exists(TRANSCRIPT_FOLDER):
+    os.makedirs(TRANSCRIPT_FOLDER)
 
 
 class Counter:

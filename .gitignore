@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+transcripts_the_ai_show/*
+
 # C extensions
 *.so
 

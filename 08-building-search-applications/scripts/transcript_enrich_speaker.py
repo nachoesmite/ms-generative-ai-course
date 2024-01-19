@@ -9,7 +9,7 @@ import queue
 import time
 import argparse
 import openai
-from openai.embeddings_utils import get_embedding
+from openai_utils import get_embedding
 from rich.progress import Progress
 from tenacity import (
     retry,
@@ -22,23 +22,15 @@ from tenacity import (
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
-API_KEY = os.environ["AZURE_OPENAI_API_KEY"]
-RESOURCE_ENDPOINT = os.environ["AZURE_OPENAI_ENDPOINT"]
+API_KEY = os.environ["OPENAI_API_KEY"]
 TRANSCRIPT_FOLDER = "transcripts"
 PROCESSING_THREADS = 10
 SEGMENT_MIN_LENGTH_MINUTES = 3
 OPENAI_REQUEST_TIMEOUT = 60
 
 OPENAI_MAX_TOKENS = 512
-AZURE_OPENAI_MODEL_DEPLOYMENT_NAME = os.getenv(
-    "AZURE_OPENAI_MODEL_DEPLOYMENT_NAME", "gpt-35-turbo"
-)
 
-
-openai.api_type = "azure"
 openai.api_key = API_KEY
-openai.api_base = RESOURCE_ENDPOINT
-openai.api_version = "2023-07-01-preview"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--folder")
@@ -47,7 +39,7 @@ args = parser.parse_args()
 if args.verbose:
     logger.setLevel(logging.DEBUG)
 
-TRANSCRIPT_FOLDER = args.folder if args.folder else None
+TRANSCRIPT_FOLDER = args.folder if args.folder else os.environ["TRANSCRIPT_FOLDER"]
 if not TRANSCRIPT_FOLDER:
     logger.error("Transcript folder not provided")
     exit(1)
@@ -100,15 +92,13 @@ counter = Counter()
 @retry(
     wait=wait_random_exponential(min=6, max=10),
     stop=stop_after_attempt(4),
-    retry=retry_if_not_exception_type(openai.InvalidRequestError),
 )
 def get_speaker_info(text):
     """Gets the OpenAI functions from the text."""
 
     function_name = None
     arguments = None
-
-    response_1 = openai.ChatCompletion.create(
+    response_1 = openai.chat.completions.create(
         model="gpt-3.5-turbo-0613",
         messages=[
             {
@@ -119,19 +109,16 @@ def get_speaker_info(text):
         ],
         functions=openai_functions,
         max_tokens=OPENAI_MAX_TOKENS,
-        engine=AZURE_OPENAI_MODEL_DEPLOYMENT_NAME,
-        request_timeout=OPENAI_REQUEST_TIMEOUT,
         function_call={"name": "get_speaker_name"},
-        temperature=0.0,
-    )
-
+        temperature=0.0
+     )
     # The assistant's response includes a function call. We extract the arguments from this function call
 
-    result = response_1.get("choices")[0].get("message")
+    result = response_1.choices[0].message
 
-    if result.get("function_call"):
-        function_name = result.get("function_call").get("name")
-        arguments = json.loads(result.get("function_call").get("arguments"))
+    if result.function_call:
+        function_name = result.function_call.name
+        arguments = json.loads(result.function_call.arguments)
 
     return function_name, arguments
 
