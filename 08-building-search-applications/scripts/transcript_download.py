@@ -37,8 +37,8 @@ args = parser.parse_args()
 if args.verbose:
     logger.setLevel(logging.DEBUG)
 
-TRANSCRIPT_FOLDER = args.folder if args.folder else None
-PLAYLIST_ID = args.playlist if args.playlist else None
+TRANSCRIPT_FOLDER = args.folder if args.folder else os.environ["TRANSCRIPT_FOLDER"]
+PLAYLIST_ID = args.playlist if args.playlist else os.environ["YOUTUBE_PLAYLIST"]
 
 if not TRANSCRIPT_FOLDER:
     logger.error("Transcript folder not provided")

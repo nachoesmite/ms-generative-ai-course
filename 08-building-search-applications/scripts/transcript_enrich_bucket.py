@@ -32,7 +32,7 @@ args = parser.parse_args()
 if args.verbose:
     logger.setLevel(logging.DEBUG)
 
-TRANSCRIPT_FOLDER = args.folder if args.folder else None
+TRANSCRIPT_FOLDER = args.folder if args.folder else os.environ["TRANSCRIPT_FOLDER"]
 SEGMENT_LENGTH_MINUTES = int(args.minutes) if args.minutes else SEGMENT_LENGTH_MINUTES
 
 if not TRANSCRIPT_FOLDER:
@@ -205,7 +205,7 @@ def get_transcript(metadata):
 logger.debug("Transcription folder: %s", TRANSCRIPT_FOLDER)
 logger.debug("Segment length %d minutes", SEGMENT_LENGTH_MINUTES)
 
-folder = os.path.join(TRANSCRIPT_FOLDER, "*.json")
+folder = os.path.join(TRANSCRIPT_FOLDER,"*json")
 
 with Progress() as progress:
     task1 = progress.add_task("[green]Enriching Buckets...", total=total_files)
@@ -222,7 +222,10 @@ logger.debug("Total files: %s", total_files)
 logger.debug("Total segments: %s", len(segments))
 
 # save segments to a json file
-
+output_file = os.path.join(TRANSCRIPT_FOLDER, "output")
+if not os.path.exists(output_file):
+    os.makedirs(output_file)
 output_file = os.path.join(TRANSCRIPT_FOLDER, "output", "master_transcriptions.json")
+
 with open(output_file, "w", encoding="utf-8") as f:
     json.dump(segments, f, ensure_ascii=False, indent=4)

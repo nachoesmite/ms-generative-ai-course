@@ -15,19 +15,12 @@ from tenacity import (
 )
 from rich.progress import Progress
 
-API_KEY = os.environ["AZURE_OPENAI_API_KEY"]
-RESOURCE_ENDPOINT = os.environ["AZURE_OPENAI_ENDPOINT"]
-AZURE_OPENAI_MODEL_DEPLOYMENT_NAME = os.getenv(
-    "AZURE_OPENAI_MODEL_DEPLOYMENT_NAME", "gpt-35-turbo"
-)
+API_KEY = os.environ["OPENAI_API_KEY"]
 MAX_TOKENS = 512
 PROCESSOR_THREADS = 10
 OPENAI_REQUEST_TIMEOUT = 30
 
-openai.api_type = "azure"
 openai.api_key = API_KEY
-openai.api_base = RESOURCE_ENDPOINT
-openai.api_version = "2023-07-01-preview"
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -37,7 +30,7 @@ parser.add_argument("--verbose", action="store_true")
 parser.add_argument("-f", "--folder")
 args = parser.parse_args()
 
-TRANSCRIPT_FOLDER = args.folder if args.folder else None
+TRANSCRIPT_FOLDER = args.folder if args.folder else os.environ["TRANSCRIPT_FOLDER"]
 if not TRANSCRIPT_FOLDER:
     logger.error("Transcript folder not provided")
     exit(1)
@@ -87,7 +80,7 @@ def chatgpt_summary(text):
     ]
 
     response = openai.ChatCompletion.create(
-        engine=AZURE_OPENAI_MODEL_DEPLOYMENT_NAME,
+        model="gpt-3.5-turbo",
         messages=messages,
         temperature=0.7,
         max_tokens=MAX_TOKENS,

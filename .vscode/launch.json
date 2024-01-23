@@ -11,6 +11,7 @@
       "program": "${file}",
       "console": "integratedTerminal",
       "justMyCode": true,
+      // add current directory
       //"args": ["-f","transcripts_the_ai_show","-p", "PLlrxD0HtieHi0mwteKBOfEeOYf0LJU4O1"]
     }
   ]
